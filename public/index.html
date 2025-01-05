@@ -182,36 +182,22 @@
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
         border-radius: 15px;
-        padding: 30px;
-        margin: 0px auto;
-        width: 95%;
-        height: 500px;
-        max-width: 1200px;
+        padding: 20px;
+        margin: 20px auto;
+        width: 100%;
+        max-width: 800px;
         box-shadow: var(--shadow);
         animation: slideIn 0.5s ease-out;
     }
 
     .calendar-with-notes {
         display: grid;
-        grid-template-columns: minmax(250px, 1fr) minmax(250px, 1fr);
-        gap: 60px;
+        grid-template-columns: 1fr;
         width: 100%;
-        align-items: start;
         margin: 0 auto;
-        max-width: 1100px;
     }
 
     .calendar-section {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 20px;
-        height: 500px;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .notes-section {
         background: rgba(255, 255, 255, 0.05);
         border-radius: 12px;
         padding: 20px;
@@ -248,93 +234,6 @@
         justify-content: space-between;
         align-items: center;
         padding: 0 15px;
-    }
-
-    .notes-list {
-        flex-grow: 1;
-        overflow-y: auto;
-        margin-bottom: 20px;
-        padding-right: 15px;
-    }
-
-    .note-item {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        position: relative;
-    }
-
-    .add-note {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        margin-top: auto;
-    }
-
-    .note-input {
-        width: 95%;
-        padding: 12px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: var(--text-light);
-        font-size: 1rem;
-    }
-
-    textarea.note-input {
-        min-height: 100px;
-        resize: vertical;
-    }
-
-    .note-btn {
-        padding: 12px;
-        border-radius: 8px;
-        background: var(--primary);
-        color: white;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 1rem;
-    }
-
-    .note-btn:hover {
-        background: var(--primary-hover);
-    }
-
-    @media (max-width: 1024px) {
-        .calendar-with-notes {
-            grid-template-columns: 1fr;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .calendar-section,
-        .notes-section {
-            height: 450px;
-        }
-
-        .calendar-container {
-            padding: 20px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .calendar-section,
-        .notes-section {
-            height: 400px;
-            padding: 15px;
-        }
-
-        .calendar-container {
-            padding: 15px;
-            width: 95%;
-        }
-
-        .note-input,
-        .note-btn {
-            padding: 10px;
-        }
     }
 
     .timetable-container {
@@ -549,12 +448,6 @@
                     </button>
                 </div>
                 <div class="calendar" id="calendar"></div>
-            </div>
-            <div class="notes-section">
-                <h3>Absence Notes</h3>
-                <textarea id="noteText" placeholder="Enter your note here..." class="note-input"></textarea>
-                <button onclick="addNote()" class="note-btn">Add Note</button>
-                <div id="notesList" class="notes-list"></div>
             </div>
         </div>
     </div>
@@ -901,80 +794,6 @@
         }
     }
 
-    async function addNote() {
-        const date = document.getElementById('noteDate').value;
-        const text = document.getElementById('noteText').value;
-
-        if (!date || !text) return;
-
-        try {
-            const response = await fetch('/api/absence-notes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ date, text })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to add note');
-            }
-
-            document.getElementById('noteText').value = '';
-            loadNotes();
-        } catch (error) {
-            console.error('Error adding note:', error);
-        }
-    }
-
-    async function deleteNote(id) {
-        try {
-            const response = await fetch(`/api/absence-notes/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete note');
-            }
-
-            loadNotes();
-        } catch (error) {
-            console.error('Error deleting note:', error);
-        }
-    }
-
-    async function loadNotes() {
-        try {
-            const response = await fetch('/api/absence-notes', {
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to load notes');
-            }
-
-            const notes = await response.json();
-            const notesList = document.getElementById('notesList');
-            notesList.innerHTML = notes.map(note => `
-                <div class="note-item">
-                    <div class="note-date">${new Date(note.date).toLocaleDateString()}</div>
-                    <div class="note-text">${note.text}</div>
-                    <button class="delete-note" onclick="deleteNote('${note._id}')">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error('Error loading notes:', error);
-        }
-    }
-
     function previousMonth() {
         currentDate.setMonth(currentDate.getMonth() - 1);
         loadCalendar();
@@ -988,7 +807,6 @@
     // Load data when page loads
     loadTimetable();
     loadCalendar();
-    loadNotes();
   </script>
 </body>
 </html>
