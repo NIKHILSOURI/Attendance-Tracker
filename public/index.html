@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Tracker</title>
+  <link rel="icon" href="/images/Logo.png" type="image/png">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="/styles/navbar.css" rel="stylesheet">
+  <link href="/styles.css" rel="stylesheet">
+  <link href="/styles/components.css" rel="stylesheet">
+  <style>
+    :root {
+        --primary: #4f46e5;
+        --primary-hover: #6366f1;
+        --bg-gradient: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+        --text-light: #fff;
+        --shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        background: var(--bg-gradient);
+        padding-top: 60px;
+        min-height: 100vh;
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 10px;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+        text-align: center;
+        color: var(--text-light);
+        font-size: 1.5rem;
+        margin: 20px 0;
+        text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.5s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    th, td {
+        padding: 15px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-light);
+    }
+
+    th {
+        background: var(--primary);
+        color: var(--text-light);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    td {
+        border-bottom: none;
+        transition: all 0.3s ease;
+    }
+
+    tr:hover td {
+        background: rgba(255,255,255,0.05);
+    }
+
+    input[type="number"] {
+        width: 80px;
+        padding: 8px 12px;
+        border: 2px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        color: var(--text-light);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    input[type="number"]:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: rgba(255,255,255,0.15);
+    }
+
+    .attendance-danger {
+        color: #ff4d4d;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(255,77,77,0.3);
+    }
+
+    .attendance-warning {
+        color: #ffd700;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(255,215,0,0.3);
+    }
+
+    .attendance-success {
+        color: #4eff4e;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(78,255,78,0.3);
+    }
+
+    .total-row {
+        background: rgba(79, 70, 229, 0.2);
+        font-weight: bold;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 10px;
+        }
+
+        table {
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 10px 5px;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            padding: 5px 8px;
+        }
+    }
+
+    @media screen and (min-width: 768px) {
+        body {
+            font-size: 16px;
+            padding-top: 80px;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 30px 0;
+        }
+    }
+
+    .month-nav button,
+    .user-info-bar {
+        display: none;
+    }
+
+    .calendar-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 30px;
+        margin: 0px auto;
+        width: 95%;
+        height: 500px;
+        max-width: 1200px;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .calendar-with-notes {
+        display: grid;
+        grid-template-columns: minmax(250px, 1fr) minmax(250px, 1fr);
+        gap: 60px;
+        width: 100%;
+        align-items: start;
+        margin: 0 auto;
+        max-width: 1100px;
+    }
+
+    .calendar-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 20px;
+        height: 500px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .notes-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 20px;
+        height: 500px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        padding: 10px;
+        flex-grow: 1;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        padding: 10px;
+    }
+
+    .calendar-header {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 15px;
+    }
+
+    .notes-list {
+        flex-grow: 1;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        padding-right: 15px;
+    }
+
+    .note-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    .add-note {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: auto;
+    }
+
+    .note-input {
+        width: 95%;
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-light);
+        font-size: 1rem;
+    }
+
+    textarea.note-input {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .note-btn {
+        padding: 12px;
+        border-radius: 8px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .note-btn:hover {
+        background: var(--primary-hover);
+    }
+
+    @media (max-width: 1024px) {
+        .calendar-with-notes {
+            grid-template-columns: 1fr;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .calendar-section,
+        .notes-section {
+            height: 450px;
+        }
+
+        .calendar-container {
+            padding: 20px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .calendar-section,
+        .notes-section {
+            height: 400px;
+            padding: 15px;
+        }
+
+        .calendar-container {
+            padding: 15px;
+            width: 95%;
+        }
+
+        .note-input,
+        .note-btn {
+            padding: 10px;
+        }
+    }
+
+    .timetable-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: var(--shadow);
+    }
+
+    .attendance-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: var(--shadow);
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/home.html" class="navbar-brand">
+      <img src="/images/Logo.png" alt="Attendance Tracker Logo">
+      Attendance Tracker
+    </a>
+    <div class="navbar-nav">
+      <a href="/home.html" class="nav-link">
+        <i class="fas fa-home"></i> Home
+      </a>
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span id="userName">Loading...</span>
+      </div>
+      <a href="#" class="nav-link" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </div>
+  </nav>
+  <div class="container">
+    <h1>Class Timetable</h1>
+    <div class="timetable-container">
+      <table id="timetable">
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th contenteditable="true">8:30 - 9:20</th>
+                <th contenteditable="true">9:20 - 10:10</th>
+                <th contenteditable="true">10:20 - 11:10</th>
+                <th contenteditable="true">11:10 - 12:00</th>
+                <th contenteditable="true">1:00 - 1:50</th>
+                <th contenteditable="true">1:50 - 2:40</th>
+                <th contenteditable="true">2:50 - 3:40</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>MON</td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+            </tr>
+            <tr>
+                <td>TUE</td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+            </tr>
+            <tr>
+                <td>WED</td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+            </tr>
+            <tr>
+                <td>THU</td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+            </tr>
+            <tr>
+                <td>FRI</td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+            </tr>
+            <tr>
+                <td>SAT</td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h1>Attendance Tracker</h1>
+    <div class="attendance-container">
+      <table id="attendance-table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Total Classes</th>
+                <th>Attended Classes</th>
+                <th>Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>OE-II</td>
+                <td><input type="number" value="0" class="total" data-subject="OE-II"></td>
+                <td><input type="number" value="0" class="attended" data-subject="OE-II"></td>
+                <td class="percentage" data-subject="OE-II">0%</td>
+            </tr>
+            <tr>
+                <td>IC</td>
+                <td><input type="number" value="0" class="total" data-subject="IC"></td>
+                <td><input type="number" value="0" class="attended" data-subject="IC"></td>
+                <td class="percentage" data-subject="IC">0%</td>
+            </tr>
+            <tr>
+                <td>ML</td>
+                <td><input type="number" value="0" class="total" data-subject="ML"></td>
+                <td><input type="number" value="0" class="attended" data-subject="ML"></td>
+                <td class="percentage" data-subject="ML">0%</td>
+            </tr>
+            <tr>
+                <td>CD</td>
+                <td><input type="number" value="0" class="total" data-subject="CD"></td>
+                <td><input type="number" value="0" class="attended" data-subject="CD"></td>
+                <td class="percentage" data-subject="CD">0%</td>
+            </tr>
+            <tr>
+                <td>CNS</td>
+                <td><input type="number" value="0" class="total" data-subject="CNS"></td>
+                <td><input type="number" value="0" class="attended" data-subject="CNS"></td>
+                <td class="percentage" data-subject="CNS">0%</td>
+            </tr>
+            <tr>
+                <td>PE-II</td>
+                <td><input type="number" value="0" class="total" data-subject="PE-II"></td>
+                <td><input type="number" value="0" class="attended" data-subject="PE-II"></td>
+                <td class="percentage" data-subject="PE-II">0%</td>
+            </tr>
+            <tr>
+                <td>FSD LAB</td>
+                <td><input type="number" value="0" class="total" data-subject="FSD"></td>
+                <td><input type="number" value="0" class="attended" data-subject="FSD"></td>
+                <td class="percentage" data-subject="FSD">0%</td>
+            </tr>
+            <tr>
+                <td>CNS LAB</td>
+                <td><input type="number" value="0" class="total" data-subject="CNS-LAB"></td>
+                <td><input type="number" value="0" class="attended" data-subject="CNS-LAB"></td>
+                <td class="percentage" data-subject="CNS-LAB">0%</td>
+            </tr>
+            <tr>
+                <td>ML LAB</td>
+                <td><input type="number" value="0" class="total" data-subject="ML-LAB"></td>
+                <td><input type="number" value="0" class="attended" data-subject="ML-LAB"></td>
+                <td class="percentage" data-subject="ML-LAB">0%</td>
+            </tr>
+            <tr>
+                <td>PE-II LAB</td>
+                <td><input type="number" value="0" class="total" data-subject="PE-II-LAB"></td>
+                <td><input type="number" value="0" class="attended" data-subject="PE-II-LAB"></td>
+                <td class="percentage" data-subject="PE-II-LAB">0%</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="3">Total Attendance Percentage:</td>
+                <td id="total-percentage">0%</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="calendar-container">
+        <div class="calendar-with-notes">
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" onclick="previousMonth()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2 id="monthDisplay"></h2>
+                    <button class="calendar-nav-btn" onclick="nextMonth()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="calendar" id="calendar"></div>
+            </div>
+            <div class="notes-section">
+                <h3>Absence Notes</h3>
+                <textarea id="noteText" placeholder="Enter your note here..." class="note-input"></textarea>
+                <button onclick="addNote()" class="note-btn">Add Note</button>
+                <div id="notesList" class="notes-list"></div>
+            </div>
+        </div>
+    </div>
+
+  </div>
+
+  <script>
+    if (!sessionStorage.getItem('token')) {
+        window.location.href = '/login.html';
+    }
+
+    async function saveAttendance(subject, total, attended) {
+        try {
+            const response = await fetch('/api/attendance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    subject,
+                    totalClasses: parseInt(total),
+                    attendedClasses: parseInt(attended),
+                    date: new Date()
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save attendance');
+            }
+        } catch (error) {
+            console.error('Failed to save attendance:', error);
+        }
+    }
+
+    async function loadAttendance() {
+        try {
+            const response = await fetch('/api/attendance', {
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                }
+            });
+            const attendanceData = await response.json();
+            
+            // Group attendance by subject
+            const subjectAttendance = {};
+            attendanceData.forEach(record => {
+                subjectAttendance[record.subject] = record;
+            });
+
+            // Update the table with stored values
+            document.querySelectorAll('tr').forEach(row => {
+                const subject = row.querySelector('td')?.textContent;
+                if (subject && subjectAttendance[subject]) {
+                    const record = subjectAttendance[subject];
+                    row.querySelector('.total').value = record.totalClasses;
+                    row.querySelector('.attended').value = record.attendedClasses;
+                    updatePercentage(subject);
+                }
+            });
+
+            updateTotalPercentage();
+        } catch (error) {
+            console.error('Error loading attendance:', error);
+        }
+    }
+
+    function updatePercentage(subject) {
+        const total = document.querySelector(`.total[data-subject="${subject}"]`).value;
+        const attended = document.querySelector(`.attended[data-subject="${subject}"]`).value;
+        const percentageCell = document.querySelector(`.percentage[data-subject="${subject}"]`);
+        const percentage = total > 0 ? ((attended / total) * 100).toFixed(2) : 0;
+
+        percentageCell.textContent = `${percentage}%`;
+        
+        // Remove existing classes
+        percentageCell.classList.remove('attendance-danger', 'attendance-warning', 'attendance-success');
+        
+        // Add appropriate class based on percentage
+        if (percentage < 65) {
+            percentageCell.classList.add('attendance-danger');
+        } else if (percentage >= 65 && percentage < 75) {
+            percentageCell.classList.add('attendance-warning');
+        } else {
+            percentageCell.classList.add('attendance-success');
+        }
+    }
+
+    // Update the existing input event listener
+    document.querySelectorAll('.total, .attended').forEach(input => {
+        input.addEventListener('input', async () => {
+            const subject = input.dataset.subject;
+            const total = document.querySelector(`.total[data-subject="${subject}"]`).value;
+            const attended = document.querySelector(`.attended[data-subject="${subject}"]`).value;
+            
+            updatePercentage(subject);
+            await saveAttendance(subject, total, attended);
+            updateTotalPercentage();
+        });
+    });
+
+    function updateTotalPercentage() {
+        const totalInputs = document.querySelectorAll('.total');
+        const attendedInputs = document.querySelectorAll('.attended');
+        let totalClasses = 0;
+        let totalAttended = 0;
+
+        totalInputs.forEach((input, index) => {
+            totalClasses += parseInt(input.value) || 0;
+            totalAttended += parseInt(attendedInputs[index].value) || 0;
+        });
+
+        const totalPercentage = totalClasses > 0 ? ((totalAttended / totalClasses) * 100).toFixed(2) : 0;
+        document.getElementById('total-percentage').textContent = `${totalPercentage}%`;
+    }
+
+    // Load attendance data when page loads
+    loadAttendance();
+
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    // Display user name
+    const userName = sessionStorage.getItem('userName');
+    if (userName) {
+        document.getElementById('userName').textContent = userName;
+    } else {
+        // If name not in session storage, fetch from API
+        fetch('/api/user/profile', {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(userData => {
+            sessionStorage.setItem('userName', userData.name);
+            document.getElementById('userName').textContent = userData.name;
+        })
+        .catch(error => console.error('Error fetching user data:', error));
+    }
+
+    // Save timetable data to database
+    async function saveTimetable() {
+        const timetable = document.getElementById('timetable');
+        const headerRow = timetable.querySelector('thead tr');
+        const timeSlots = Array.from(headerRow.getElementsByTagName('th'))
+            .slice(1)
+            .map(th => th.textContent);
+
+        const days = [];
+        const rows = timetable.getElementsByTagName('tr');
+        
+        // Skip header row
+        for (let i = 1; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td');
+            const day = cells[0].textContent;
+            const subjects = Array.from(cells)
+                .slice(1)
+                .map(cell => cell.textContent || '');
+            
+            days.push({
+                day,
+                subjects
+            });
+        }
+
+        try {
+            const response = await fetch('/api/timetable', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ timeSlots, days })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save timetable');
+            }
+
+            showNotification('Timetable saved successfully', 'success');
+        } catch (error) {
+            console.error('Error saving timetable:', error);
+            showNotification('Failed to save timetable', 'error');
+        }
+    }
+
+    // Load timetable data from database
+    async function loadTimetable() {
+        try {
+            const response = await fetch('/api/timetable', {
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load timetable');
+            }
+
+            const data = await response.json();
+            
+            if (data.timeSlots && data.timeSlots.length > 0) {
+                const timetable = document.getElementById('timetable');
+                const headerRow = timetable.querySelector('thead tr');
+                const rows = timetable.getElementsByTagName('tr');
+
+                // Update time slots in header
+                const headerCells = headerRow.getElementsByTagName('th');
+                data.timeSlots.forEach((timeSlot, index) => {
+                    if (headerCells[index + 1]) {
+                        headerCells[index + 1].textContent = timeSlot;
+                    }
+                });
+
+                // Update subjects for each day
+                data.days.forEach((dayData, rowIndex) => {
+                    if (rows[rowIndex + 1]) {
+                        const cells = rows[rowIndex + 1].getElementsByTagName('td');
+                        dayData.subjects.forEach((subject, colIndex) => {
+                            if (cells[colIndex + 1]) {
+                                cells[colIndex + 1].textContent = subject;
+                            }
+                        });
+                    }
+                });
+
+                showNotification('Timetable loaded successfully', 'success');
+            }
+        } catch (error) {
+            console.error('Error loading timetable:', error);
+            showNotification('Failed to load timetable', 'error');
+        }
+    }
+
+    // Add event listener for cell changes
+    document.getElementById('timetable').addEventListener('input', debounce(() => {
+        saveTimetable();
+    }, 1000));
+
+    // Debounce function to limit save calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Show notification function
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    // Calendar functionality
+    const calendar = document.getElementById('calendar');
+    const monthDisplay = document.getElementById('monthDisplay');
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let currentDate = new Date();
+
+    async function loadCalendar() {
+        try {
+            const response = await fetch('/api/attendance-dates', {
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                }
+            });
+            const attendance = await response.json();
+            const markedDates = new Set(attendance.map(a => a.date));
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            monthDisplay.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+            calendar.innerHTML = '';
+
+            // Add weekday headers
+            weekdays.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-weekday';
+                dayElement.textContent = day;
+                calendar.appendChild(dayElement);
+            });
+
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day empty';
+                calendar.appendChild(emptyDay);
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                if (markedDates.has(dateStr)) {
+                    dayElement.classList.add('marked');
+                }
+
+                dayElement.addEventListener('click', () => toggleAttendance(dateStr, !dayElement.classList.contains('marked')));
+                calendar.appendChild(dayElement);
+            }
+        } catch (error) {
+            console.error('Error loading calendar:', error);
+        }
+    }
+
+    async function toggleAttendance(dateStr, isMarked) {
+        try {
+            const response = await fetch('/api/attendance-dates', {
+                method: isMarked ? 'POST' : 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ date: dateStr })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update attendance');
+            }
+
+            loadCalendar();
+        } catch (error) {
+            console.error('Error toggling attendance:', error);
+        }
+    }
+
+    async function addNote() {
+        const date = document.getElementById('noteDate').value;
+        const text = document.getElementById('noteText').value;
+
+        if (!date || !text) return;
+
+        try {
+            const response = await fetch('/api/absence-notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ date, text })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add note');
+            }
+
+            document.getElementById('noteText').value = '';
+            loadNotes();
+        } catch (error) {
+            console.error('Error adding note:', error);
+        }
+    }
+
+    async function deleteNote(id) {
+        try {
+            const response = await fetch(`/api/absence-notes/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete note');
+            }
+
+            loadNotes();
+        } catch (error) {
+            console.error('Error deleting note:', error);
+        }
+    }
+
+    async function loadNotes() {
+        try {
+            const response = await fetch('/api/absence-notes', {
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load notes');
+            }
+
+            const notes = await response.json();
+            const notesList = document.getElementById('notesList');
+            notesList.innerHTML = notes.map(note => `
+                <div class="note-item">
+                    <div class="note-date">${new Date(note.date).toLocaleDateString()}</div>
+                    <div class="note-text">${note.text}</div>
+                    <button class="delete-note" onclick="deleteNote('${note._id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading notes:', error);
+        }
+    }
+
+    function previousMonth() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        loadCalendar();
+    }
+
+    function nextMonth() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        loadCalendar();
+    }
+
+    // Load data when page loads
+    loadTimetable();
+    loadCalendar();
+    loadNotes();
+  </script>
+</body>
+</html>
